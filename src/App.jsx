@@ -12,18 +12,18 @@ import TrendingFeed from "./components/TrendingFeed";
 import TrendingKeywordFeed from "./components/TrendingKeywordFeed";
 import HashtagFeed from "./components/HashtagFeed";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
 export default function App() {
-  const [data, setData] = useState(null); // will hold array when fetched
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchType, setSearchType] = useState("profile");
 
-  // Auto trigger general trending when sidebar selects it
   useEffect(() => {
     if (searchType === "trending-general") {
       handleSearch("trending-general");
     } else {
-      // Clear results when changing tool (optional)
       setData(null);
       setError(null);
       setLoading(false);
@@ -40,15 +40,15 @@ export default function App() {
       let endpoint = "";
 
       if (type === "profile") {
-        endpoint = `http://localhost:5000/api/profile/${query}`;
+        endpoint = `${API_BASE}/api/profile/${query}`;
       } else if (type === "advanced") {
-        endpoint = `http://localhost:5000/api/advanced-profile/${query}`;
+        endpoint = `${API_BASE}/api/advanced-profile/${query}`;
       } else if (type === "trending-keyword") {
-        endpoint = `http://localhost:5000/api/trending/${query}`;
+        endpoint = `${API_BASE}/api/trending/${query}`;
       } else if (type === "trending-general") {
-        endpoint = `http://localhost:5000/api/trending`;
+        endpoint = `${API_BASE}/api/trending`;
       } else if (type === "hashtag") {
-        endpoint = `http://localhost:5000/api/hashtag/${query}`;
+        endpoint = `${API_BASE}/api/hashtag/${query}`;
       } else {
         throw new Error("Unknown search type");
       }
@@ -60,14 +60,15 @@ export default function App() {
       }
 
       const result = await res.json();
-      console.log("🔥 API raw result:", result); // helpful for debugging
+      console.log("🔥 API raw result:", result);
 
-      // If backend returns { success, count, data }, use result.data
-      // If backend returns plain array (for any reason), accept it as well
-      const arr = Array.isArray(result) ? result : Array.isArray(result?.data) ? result.data : null;
+      const arr = Array.isArray(result)
+        ? result
+        : Array.isArray(result?.data)
+        ? result.data
+        : null;
 
       if (!arr) {
-        // no array returned — show user-friendly error message but don't crash
         setData([]);
         setError("No data array returned from API.");
       } else {
@@ -99,12 +100,9 @@ export default function App() {
           {loading && <Loader message="⏳ Fetching data from TikTok..." />}
           {error && <ErrorMessage message={error} />}
 
-          {/* profile / advanced expect their own shapes — only render when data exists */}
           {searchType === "profile" && data && <ProfilePage data={data} />}
-
           {searchType === "advanced" && data && <AdvancedProfile data={data} />}
 
-          {/* For trending feeds and hashtag we pass the array in `data` */}
           {searchType === "trending-general" && Array.isArray(data) && (
             <TrendingFeed data={data} />
           )}
@@ -117,8 +115,7 @@ export default function App() {
             <HashtagFeed data={data} />
           )}
 
-          {/* If user selected a tool but no data yet and not loading, show hint */}
-          {(!loading && !error && !data) && (
+          {!loading && !error && !data && (
             <div className="text-center text-gray-500 mt-8">
               Select a tool or run a search to see results.
             </div>
