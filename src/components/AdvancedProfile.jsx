@@ -11,18 +11,20 @@ function Stat({ label, value }) {
 }
 
 export default function AdvancedProfile({ data }) {
-  // ✅ expected shape:
+  // Expected shape for fast scraper:
   // {
   //   profile: {...},
-  //   meta: {...},
-  //   totalVideos,
-  //   totalReposts,
   //   topVideos: [...]
   // }
 
-  const profile = data?.profile || {};
-  const meta = data?.meta || {};
-  const videos = Array.isArray(data?.topVideos) ? data.topVideos : [];
+  const profile = data?.profile || data?.data?.profile || {};
+const videos = Array.isArray(data?.topVideos)
+  ? data.topVideos
+  : Array.isArray(data?.data?.topVideos)
+  ? data.data.topVideos
+  : [];
+
+  const loadedVideoCount = videos.length;
 
   return (
     <div className="space-y-6">
@@ -42,7 +44,7 @@ export default function AdvancedProfile({ data }) {
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-500">Loaded</div>
-              <div className="font-medium">{meta.loadedVideoCards ?? 0}</div>
+              <div className="font-medium">{loadedVideoCount}</div>
             </div>
           </div>
 
@@ -56,33 +58,16 @@ export default function AdvancedProfile({ data }) {
         </div>
       </div>
 
-      {/* 📊 Meta Stats */}
+      {/* 📊 Top Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm">
           <div className="text-sm text-gray-500">Total Videos (loaded)</div>
-          <div className="text-xl font-semibold">{data.totalVideos ?? 0}</div>
-        </div>
-
-        {data.totalReposts !== undefined && (
-          <div className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm">
-            <div className="text-sm text-gray-500">Total Reposts</div>
-            <div className="text-xl font-semibold">{data.totalReposts}</div>
-          </div>
-        )}
-
-        <div className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm">
-          <div className="text-sm text-gray-500">Has Repost Tab</div>
-          <div className="text-xl font-semibold">{meta.hasRepostTab ? "Yes" : "No"}</div>
-        </div>
-
-        <div className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm">
-          <div className="text-sm text-gray-500">Has Liked Tab</div>
-          <div className="text-xl font-semibold">{meta.hasLikedTab ? "Yes" : "No"}</div>
+          <div className="text-xl font-semibold">{loadedVideoCount}</div>
         </div>
 
         <div className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm">
           <div className="text-sm text-gray-500">Requested Max</div>
-          <div className="text-xl font-semibold">{meta.requestedMax ?? "—"}</div>
+          <div className="text-xl font-semibold">{loadedVideoCount}</div>
         </div>
       </div>
 

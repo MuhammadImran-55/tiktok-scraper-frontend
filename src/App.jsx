@@ -30,58 +30,65 @@ export default function App() {
     }
   }, [searchType]);
 
-  const handleSearch = async (type, query = "") => {
-    setSearchType(type);
-    setLoading(true);
-    setError(null);
-    setData(null);
+const handleSearch = async (type, query = "") => {
+  setSearchType(type);
+  setLoading(true);
+  setError(null);
+  setData(null);
 
-    try {
-      let endpoint = "";
+  try {
+    let endpoint = "";
 
-      if (type === "profile") {
-        endpoint = `${API_BASE}/api/profile/${query}`;
-      } else if (type === "advanced") {
-        endpoint = `${API_BASE}/api/advanced-profile/${query}`;
-      } else if (type === "trending-keyword") {
-        endpoint = `${API_BASE}/api/trending/${query}`;
-      } else if (type === "trending-general") {
-        endpoint = `${API_BASE}/api/trending`;
-      } else if (type === "hashtag") {
-        endpoint = `${API_BASE}/api/hashtag/${query}`;
-      } else {
-        throw new Error("Unknown search type");
-      }
+    if (type === "profile") {
+      endpoint = `${API_BASE}/api/profile/${query}`;
+    } else if (type === "advanced") {
+      endpoint = `${API_BASE}/api/advanced-profile/${query}`;
+    } else if (type === "trending-keyword") {
+      endpoint = `${API_BASE}/api/trending/${query}`;
+    } else if (type === "trending-general") {
+      endpoint = `${API_BASE}/api/trending`;
+    } else if (type === "hashtag") {
+      endpoint = `${API_BASE}/api/hashtag/${query}`;
+    } else {
+      throw new Error("Unknown search type");
+    }
 
-      const res = await fetch(endpoint);
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "no-body");
-        throw new Error(`Failed to fetch data (${res.status}) - ${txt}`);
-      }
+    const res = await fetch(endpoint);
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "no-body");
+      throw new Error(`Failed to fetch data (${res.status}) - ${txt}`);
+    }
 
-      const result = await res.json();
-      console.log("🔥 API raw result:", result);
+    const result = await res.json();
+    console.log("🔥 API raw result:", result);
 
+    // 🧠 Most important fix here
+    if (type === "advanced") {
+      // ✅ Directly store whole object (even if empty)
+      setData(result || {});
+    } 
+    else {
+      // ✅ All other endpoints: must be array
       const arr = Array.isArray(result)
         ? result
         : Array.isArray(result?.data)
         ? result.data
-        : null;
+        : Array.isArray(result?.topVideos)
+        ? result.topVideos
+        : [];
 
-      if (!arr) {
-        setData([]);
-        setError("No data array returned from API.");
-      } else {
-        setData(arr);
-      }
-    } catch (err) {
-      console.error("API error:", err);
-      setError(err.message || "Unknown error");
-      setData([]);
-    } finally {
-      setLoading(false);
+      setData(arr);
     }
-  };
+
+  } catch (err) {
+    console.error("API error:", err);
+    setError(err.message || "Unknown error");
+    setData(type === "advanced" ? {} : []);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-100 text-black flex relative">
